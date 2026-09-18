@@ -4,8 +4,11 @@ node_modules
 docs/*
 !docs/observability.md
 scripts/
-# .env files
-.env*
+# .env files — jangan commit secrets! .env.example boleh (template)
+.env
+.env.local
+.env.*.local
+!.env.example
 
 # Quasar core related directories
 .quasar
@@ -41,3 +44,72 @@ backend/db/seeder*.sql
 backend/seed_users.sh
 backend/seed_users.pl
 backend/db/migrate_paket.sql
+
+# SSL / Certificates / SSH — jangan commit private key!
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cert
+*.cer
+secrets/
+secrets/**
+certs/
+nginx/ssl/
+deploy/ssl/
+.ssh/
+
+# Cloud / Service Account credentials
+*service-account*.json
+*service_account*.json
+*credentials*.json
+google-services.json
+GoogleService-Info.plist
+.firebase/
+.firebaserc
+
+# Docker local override (biasanya berisi password lokal)
+docker-compose.override.yml
+docker-compose.*.local.yml
+
+# Database dumps & backups
+*.sql.gz
+*.dump
+*.bak
+*.backup
+*.sqlite
+*.sqlite3
+*.db
+dump*.sql
+data/
+
+# Logs & local runtime dirs
+logs/
+backend/log/
+tmp/
+temp/
+.cache/
+
+# OS & Editor
+.idea/
+.history/
+*.swp
+*.swo
+*~
+*.tmp
+
+# Node / test output
+coverage/
+.nyc_output/
+*.tsbuildinfo
+.pnpm-store/
+
+# Perl / Python local env
+backend/lib/perl5/
+local/
+.carton/
+venv/
+.venv/
+.pytest_cache/
+.coverage
