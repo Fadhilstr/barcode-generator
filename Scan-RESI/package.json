@@ -1,0 +1,61 @@
+{
+  "name": "wahana-express-scan",
+  "version": "1.0.0",
+  "description": "Aplikasi Scan Paket Logistik Berbasis Barcode — Dijak Express",
+  "productName": "Dijak Express | Logistics Scanner",
+  "author": "Fadhil <2111500233@student.budiluhur.ac.id>",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "quasar dev",
+    "dev:pwa": "quasar dev -m pwa",
+    "dev:lan": "WAHANA_DEV_HTTPS=1 quasar dev",
+    "build": "quasar build",
+    "build:pwa": "quasar build -m pwa",
+    "test:api": "node tests/api_automated_tests.js",
+    "test:scanner": "node tests/test_camera_code93_upce.js",
+    "test:benchmark": "node tests/benchmark_barcode_performance.js",
+    "postinstall": "quasar prepare --silent"
+  },
+  "dependencies": {
+    "@esbuild/linux-x64": "^0.28.2",
+    "@quasar/extras": "^1.16.0",
+    "@zxing/library": "^0.21.3",
+    "axios": "^1.19.0",
+    "html5-qrcode": "^2.3.8",
+    "jsbarcode": "^3.12.3",
+    "pinia": "^3.0.0",
+    "qrcode": "^1.5.4",
+    "quasar": "^2.17.0",
+    "register-service-worker": "^1.7.2",
+    "vue": "^3.5.0",
+    "vue-router": "^4.4.0",
+    "zxing-wasm": "^3.1.4"
+  },
+  "devDependencies": {
+    "@quasar/app-vite": "^2.4.1",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "autoprefixer": "^10.4.27",
+    "bwip-js": "^4.11.4",
+    "postcss": "^8.5.8",
+    "workbox-build": "^7.4.1",
+    "workbox-cacheable-response": "^7.4.1",
+    "workbox-core": "^7.4.1",
+    "workbox-expiration": "^7.4.1",
+    "workbox-precaching": "^7.4.1",
+    "workbox-routing": "^7.4.1",
+    "workbox-strategies": "^7.4.1"
+  },
+  "keywords": [
+    "quasar",
+    "quasar-app",
+    "quasar-cli",
+    "quasar-app-vite",
+    "vite",
+    "vue",
+    "vuejs"
+  ],
+  "engines": {
+    "node": "^16 || ^20"
+  }
+}

@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  # 1. Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # 2. Perl Backend & Scanner Telemetry Metrics
+  - job_name: 'backend'
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    scrape_timeout: 4s
+    static_configs:
+      - targets: ['backend:5000']
+        labels:
+          service: 'backend'
+          environment: 'production'
+
+  # 3. Container & Infrastructure Metrics (cAdvisor)
+  - job_name: 'cadvisor'
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    scrape_timeout: 4s
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: 'infrastructure'
+          environment: 'production'

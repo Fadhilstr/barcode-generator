@@ -1,0 +1,606 @@
+# dcaf:01
+openapi: 3.0.3
+info:
+  title: Scan Resi Wahana API
+  description: REST API untuk platform pemindaian resi, manifest, dan tracking logistik Wahana Express. Menggunakan arsitektur routing aktif berbasis OpenAPI spec (DCAF pattern).
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+    description: Nginx Reverse Proxy / Gateway
+  - url: http://localhost:5000/api
+    description: Direct uWSGI Backend API Server
+  - url: /api
+    description: Relative API Base Path
+
+paths:
+  /auth/login:
+    post:
+      summary: Login pengguna menggunakan username dan password
+      operationId: login/AuthController
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: admin
+                password:
+                  type: string
+                  example: admin123
+      responses:
+        '200':
+          description: Login berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+        '401':
+          description: Kredensial tidak valid
+
+  /auth/verify-otp:
+    post:
+      summary: Verifikasi OTP login 2-faktor
+      operationId: verify_otp/AuthController
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - preauth_token
+                - otp
+              properties:
+                preauth_token:
+                  type: string
+                otp:
+                  type: string
+      responses:
+        '200':
+          description: OTP valid, sesi login dibuat
+
+  /auth/resend-otp:
+    post:
+      summary: Kirim ulang kode OTP login
+      operationId: resend_otp/AuthController
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - preauth_token
+              properties:
+                preauth_token:
+                  type: string
+      responses:
+        '200':
+          description: Kode OTP berhasil dikirim ulang
+
+  /auth/forgot-password:
+    post:
+      summary: Permintaan lupa password & kirim OTP reset
+      operationId: forgot_password_request/AuthController
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - identifier
+              properties:
+                identifier:
+                  type: string
+      responses:
+        '200':
+          description: OTP reset password dikirim
+
+  /auth/verify-forgot-otp:
+    post:
+      summary: Verifikasi kode OTP reset password
+      operationId: verify_forgot_password_otp/AuthController
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reset_token
+                - otp
+              properties:
+                reset_token:
+                  type: string
+                otp:
+                  type: string
+      responses:
+        '200':
+          description: OTP reset valid
+
+  /auth/reset-password:
+    post:
+      summary: Ubah password baru setelah verifikasi OTP
+      operationId: reset_password/AuthController
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reset_token
+                - new_password
+              properties:
+                reset_token:
+                  type: string
+                new_password:
+                  type: string
+      responses:
+        '200':
+          description: Password berhasil diubah
+
+  /auth/quick-login:
+    post:
+      summary: Quick login simulator untuk keperluan testing role demo
+      operationId: quick_login/AuthController
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+              properties:
+                user_id:
+                  type: string
+                  example: USR-ADMIN-001
+      responses:
+        '200':
+          description: Quick login berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+
+  /auth/logout:
+    post:
+      summary: Logout dan hapus sesi token
+      operationId: logout/AuthController
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logout berhasil
+
+  /users:
+    get:
+      summary: Dapatkan daftar pengguna
+      operationId: list/UsersController
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Daftar pengguna berhasil diambil
+    post:
+      summary: Buat pengguna baru (Khusus Admin)
+      operationId: create/UsersController
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      x-role: ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - name
+                - role
+                - email
+              properties:
+                username:
+                  type: string
+                name:
+                  type: string
+                email:
+                  type: string
+                role:
+                  type: string
+                  enum: [ADMIN, PETUGAS_SCAN, CUSTOMER]
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Pengguna berhasil dibuat
+
+  /users/{id}:
+    put:
+      summary: Perbarui data pengguna (Khusus Admin)
+      operationId: update/UsersController
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      x-role: ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                username:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+                  enum: [ADMIN, PETUGAS_SCAN, CUSTOMER]
+      responses:
+        '200':
+          description: Pengguna berhasil diperbarui
+    delete:
+      summary: Hapus pengguna (Khusus Admin)
+      operationId: delete/UsersController
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      x-role: ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pengguna berhasil dihapus
+
+  /users/{id}/status:
+    patch:
+      summary: Ubah status aktif/non-aktif pengguna (Khusus Admin)
+      operationId: toggle_status/UsersController
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      x-role: ADMIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Status pengguna berhasil diperbarui
+
+  /tasks:
+    get:
+      summary: Dapatkan daftar tugas kurir / manifest
+      operationId: list/TasksController
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Daftar tugas berhasil diambil
+    post:
+      summary: Buat penugasan baru (Khusus Admin)
+      operationId: create/TasksController
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      x-role: ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - tanggal
+                - shift
+              properties:
+                user_id:
+                  type: string
+                tanggal:
+                  type: string
+                shift:
+                  type: string
+                  enum: [Pagi, Sore]
+                target:
+                  type: integer
+                lokasi:
+                  type: string
+      responses:
+        '201':
+          description: Tugas berhasil dibuat
+
+  /tasks/{id}/progress:
+    patch:
+      summary: Perbarui progres tugas
+      operationId: progress/TasksController
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Progres berhasil diperbarui
+
+  /tasks/{id}/complete:
+    patch:
+      summary: Selesaikan tugas
+      operationId: complete/TasksController
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tugas selesai
+
+  /scans:
+    get:
+      summary: Dapatkan riwayat pemindaian barcode resi
+      operationId: list/ScansController
+      tags:
+        - Scans
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: query
+          schema:
+            type: string
+        - name: task_id
+          in: query
+          schema:
+            type: string
+        - name: status_scan
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Riwayat scan berhasil diambil
+    post:
+      summary: Simpan event pemindaian resi baru
+      operationId: create/ScansController
+      tags:
+        - Scans
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nomor_resi
+                - task_id
+              properties:
+                nomor_resi:
+                  type: string
+                  example: S7NMLERV
+                task_id:
+                  type: string
+                  example: TASK-001
+                lokasi:
+                  type: string
+                device_id:
+                  type: string
+                jenis_scan:
+                  type: string
+                  enum: [INBOUND, OUTBOUND]
+      responses:
+        '200':
+          description: Event scan berhasil dicatat
+
+  /scans/stats/{user_id}:
+    get:
+      summary: Dapatkan statistik scan petugas tertentu
+      operationId: stats/ScansController
+      tags:
+        - Scans
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Statistik berhasil diambil
+
+  /paket/resi:
+    post:
+      summary: Buat draft paket baru dan generate nomor resi unik (Server-Side)
+      operationId: create_draft/PaketController
+      tags:
+        - Packages
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Resi berhasil dibuat
+
+  /paket:
+    get:
+      summary: Dapatkan daftar paket / kiriman
+      operationId: list/PaketController
+      tags:
+        - Packages
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Daftar paket berhasil diambil
+
+  /paket/{id}:
+    get:
+      summary: Dapatkan detail paket berdasarkan nomor resi
+      operationId: detail/PaketController
+      tags:
+        - Packages
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detail paket berhasil diambil
+    patch:
+      summary: Perbarui data paket
+      operationId: update/PaketController
+      tags:
+        - Packages
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paket berhasil diperbarui
+
+  /audit-logs:
+    get:
+      summary: Dapatkan catatan aktivitas audit log sistem (Khusus Admin)
+      operationId: list/AuditController
+      tags:
+        - Audit
+      security:
+        - BearerAuth: []
+      x-role: ADMIN
+      responses:
+        '200':
+          description: Audit log berhasil diambil
+
+  /openapi.yaml:
+    get:
+      summary: Ambil spesifikasi OpenAPI YAML
+      operationId: get_openapi_yaml/DocsController
+      tags:
+        - Documentation
+      security: []
+      responses:
+        '200':
+          description: File spesifikasi OpenAPI YAML
+
+  /docs:
+    get:
+      summary: Halaman interaktif Swagger UI
+      operationId: get_swagger_ui/DocsController
+      tags:
+        - Documentation
+      security: []
+      responses:
+        '200':
+          description: Tampilan Swagger UI
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    AuthSuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        token:
+          type: string
+          example: eyJhbGciOi...
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              example: USR-ADMIN-001
+            username:
+              type: string
+              example: admin
+            name:
+              type: string
+              example: Administrator
+            role:
+              type: string
+              example: ADMIN

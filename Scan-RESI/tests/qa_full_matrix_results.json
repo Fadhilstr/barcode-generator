@@ -1,0 +1,133 @@
+{
+  "total": 18,
+  "passed": 18,
+  "pass_rate": 100.0,
+  "results": [
+    {
+      "category": "PUBLIC",
+      "mode": "ONLINE",
+      "name": "Get Swagger UI Interactive Docs (/api/docs)",
+      "passed": true,
+      "detail": "HTTP Status: 200"
+    },
+    {
+      "category": "PUBLIC",
+      "mode": "ONLINE",
+      "name": "Get OpenAPI 3.0 YAML Specification (/api/openapi.yaml)",
+      "passed": true,
+      "detail": "HTTP Status: 200"
+    },
+    {
+      "category": "ADMIN",
+      "mode": "ONLINE",
+      "name": "Admin Credential Verification (/api/auth/login)",
+      "passed": true,
+      "detail": "Requires OTP: True"
+    },
+    {
+      "category": "ADMIN",
+      "mode": "ONLINE",
+      "name": "Admin Bearer Token Authentication",
+      "passed": true,
+      "detail": "User: Admin System (USR-ADMIN-001)"
+    },
+    {
+      "category": "ADMIN",
+      "mode": "ONLINE",
+      "name": "Get Master Users List (/api/users)",
+      "passed": true,
+      "detail": "Total Users in DB: 9"
+    },
+    {
+      "category": "ADMIN",
+      "mode": "Create Task Shift Allocation (/api/tasks)",
+      "name": true,
+      "passed": "Created Task ID: TASK-059",
+      "detail": ""
+    },
+    {
+      "category": "ADMIN",
+      "mode": "Get System Audit Trail Logs (/api/audit-logs)",
+      "name": true,
+      "passed": "Total Audit Logs: 200",
+      "detail": ""
+    },
+    {
+      "category": "CUSTOMER",
+      "mode": "ONLINE",
+      "name": "Customer Bearer Token Authentication",
+      "passed": true,
+      "detail": "User: Customer Demo (USR-CUST-001)"
+    },
+    {
+      "category": "CUSTOMER",
+      "mode": "Generate Draft Resi Server-Side (/api/paket/resi)",
+      "name": true,
+      "passed": "Generated Resi: Z92M5CW5",
+      "detail": ""
+    },
+    {
+      "category": "CUSTOMER",
+      "mode": "Update Parcel Data to TERDAFTAR (/api/paket/:resi)",
+      "name": true,
+      "passed": "Parcel Status: TERDAFTAR",
+      "detail": ""
+    },
+    {
+      "category": "CUSTOMER",
+      "mode": "Get Customer Parcel List (/api/paket)",
+      "name": true,
+      "passed": "Total Customer Parcels: 100",
+      "detail": ""
+    },
+    {
+      "category": "PETUGAS_SCAN",
+      "mode": "ONLINE",
+      "name": "Petugas Scan Bearer Token Authentication",
+      "passed": true,
+      "detail": "User: Fadhil (USR-001)"
+    },
+    {
+      "category": "PETUGAS_SCAN",
+      "mode": "ONLINE",
+      "name": "Scan Registered Parcel (/api/scans)",
+      "passed": true,
+      "detail": "Scan Status: SUCCESS"
+    },
+    {
+      "category": "PETUGAS_SCAN",
+      "mode": "ONLINE",
+      "name": "Anti-Duplicate Scan Validation",
+      "passed": true,
+      "detail": "Duplicate Status: DUPLICATE"
+    },
+    {
+      "category": "PETUGAS_SCAN",
+      "mode": "ONLINE",
+      "name": "Get Performance Stats (/api/scans/stats/:id)",
+      "passed": true,
+      "detail": "Success: 57, Duplicate: 14"
+    },
+    {
+      "category": "PETUGAS_SCAN",
+      "mode": "OFFLINE",
+      "name": "Simulate Offline Scan & IndexedDB Queue Storage",
+      "passed": true,
+      "detail": "Queued Resi: SLNXA7NV in pending_scans"
+    },
+    {
+      "category": "PETUGAS_SCAN",
+      "mode": "OFFLINE->ONLINE",
+      "name": "Auto-Sync Pending Scans to Server MariaDB",
+      "passed": true,
+      "detail": "Synced Resi: SLNXA7NV to Database"
+    },
+    {
+      "category": "SECURITY",
+      "mode": "ONLINE",
+      "name": "Invalid Bearer Token Guard (/api/users)",
+      "passed": true,
+      "detail": "HTTP Status: 401 Unauthorized"
+    }
+  ]
+}

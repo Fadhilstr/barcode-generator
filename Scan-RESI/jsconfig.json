@@ -1,0 +1,17 @@
+{
+  "extends": "./.quasar/tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "baseUrl": "."
+  },
+  "typeAcquisition": {
+    "enable": false
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".quasar",
+    "scripts",
+    "tests"
+  ]
+}

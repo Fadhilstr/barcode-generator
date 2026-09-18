@@ -1,0 +1,22 @@
+=head2 Tue Sep  8 04:49:29 2026: C<Module> L<YAML::Tiny|YAML::Tiny>
+
+=over 4
+
+=item *
+
+C<installed into: /home/fadhil/Scan-RESI/Scan-RESI/backend/lib/perl5/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.76>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+

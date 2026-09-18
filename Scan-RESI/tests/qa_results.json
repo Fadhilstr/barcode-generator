@@ -1,0 +1,97 @@
+{
+  "total": 15,
+  "passed": 15,
+  "pass_rate": 100.0,
+  "results": [
+    {
+      "role": "PUBLIC",
+      "name": "Get Swagger UI Docs (/api/docs)",
+      "passed": true,
+      "detail": "HTTP Status: 200"
+    },
+    {
+      "role": "PUBLIC",
+      "name": "Get OpenAPI 3.0 Spec (/api/openapi.yaml)",
+      "passed": true,
+      "detail": "HTTP Status: 200"
+    },
+    {
+      "role": "ADMIN",
+      "name": "Admin Credential Verification (/api/auth/login)",
+      "passed": true,
+      "detail": "Requires OTP: True"
+    },
+    {
+      "role": "ADMIN",
+      "name": "Admin Bearer Token Authentication",
+      "passed": true,
+      "detail": "User: Admin System (USR-ADMIN-001)"
+    },
+    {
+      "role": "ADMIN",
+      "name": "Get Master Users List (/api/users)",
+      "passed": true,
+      "detail": "Total Users in DB: 9"
+    },
+    {
+      "role": "ADMIN",
+      "name": "Create Task Shift Allocation (/api/tasks)",
+      "passed": true,
+      "detail": "Created Task ID: TASK-012"
+    },
+    {
+      "role": "ADMIN",
+      "name": "Get System Audit Trail Logs (/api/audit-logs)",
+      "passed": true,
+      "detail": "Total Audit Logs: 200"
+    },
+    {
+      "role": "CUSTOMER",
+      "name": "Customer Bearer Token Authentication",
+      "passed": true,
+      "detail": "User: Customer Demo (USR-CUST-001)"
+    },
+    {
+      "role": "CUSTOMER",
+      "name": "Generate Draft Resi Server-Side (/api/paket/resi)",
+      "passed": true,
+      "detail": "Generated Resi: YF4CPLVT"
+    },
+    {
+      "role": "CUSTOMER",
+      "name": "Update Parcel Data to TERDAFTAR (/api/paket/:resi)",
+      "passed": true,
+      "detail": "Parcel Status: TERDAFTAR"
+    },
+    {
+      "role": "CUSTOMER",
+      "name": "Get Customer Parcel List (/api/paket)",
+      "passed": true,
+      "detail": "Total Customer Parcels: 56"
+    },
+    {
+      "role": "PETUGAS_SCAN",
+      "name": "Petugas Scan Bearer Token Authentication",
+      "passed": true,
+      "detail": "User: Fadhil (USR-001)"
+    },
+    {
+      "role": "PETUGAS_SCAN",
+      "name": "Scan Registered Parcel (/api/scans)",
+      "passed": true,
+      "detail": "Scan Status: SUCCESS"
+    },
+    {
+      "role": "PETUGAS_SCAN",
+      "name": "Anti-Duplicate Scan Validation (/api/scans)",
+      "passed": true,
+      "detail": "Duplicate Status: DUPLICATE"
+    },
+    {
+      "role": "PETUGAS_SCAN",
+      "name": "Get Performance Stats (/api/scans/stats/:id)",
+      "passed": true,
+      "detail": "Success: 10, Duplicate: 7"
+    }
+  ]
+}

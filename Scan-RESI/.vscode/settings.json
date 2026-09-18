@@ -1,0 +1,16 @@
+{
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "search.exclude": {
+    "node_modules/": true,
+    "dist/": true,
+    ".quasar/": true,
+    "/quasar.config.js.temporary.*": true
+  },
+  "[sql]": {
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false,
+    "editor.formatOnType": false,
+    "editor.defaultFormatter": null
+  }
+}

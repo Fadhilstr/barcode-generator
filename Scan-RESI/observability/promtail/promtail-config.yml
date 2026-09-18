@@ -1,0 +1,81 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: info
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+    batchwait: 1s
+    batchsize: 102400
+
+scrape_configs:
+  # 1. Scrape log dari Docker socket & container daemon
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/?(.*)'
+        target_label: 'container'
+      - source_labels: ['container']
+        regex: '.*nginx.*'
+        target_label: 'service'
+        replacement: 'nginx'
+      - source_labels: ['container']
+        regex: '.*backend.*'
+        target_label: 'service'
+        replacement: 'backend'
+      - source_labels: ['container']
+        regex: '.*frontend.*'
+        target_label: 'service'
+        replacement: 'frontend'
+      - source_labels: ['container']
+        regex: '.*db.*'
+        target_label: 'service'
+        replacement: 'database'
+      - source_labels: ['container']
+        regex: '.*(prometheus|loki|grafana|promtail|cadvisor).*'
+        target_label: 'service'
+        replacement: 'observability'
+
+    pipeline_stages:
+      # Deteksi & ekstraksi format logfmt / JSON
+      - regex:
+          expression: '(?i)level=(?P<level>[A-Z]+)'
+      - regex:
+          expression: '(?i)"level":\s*"(?P<json_level>[A-Z]+)"'
+      - regex:
+          expression: '(?i)event=(?P<event>[A-Z0-9_]+)'
+      - regex:
+          expression: '(?i)status=(?P<status>\d{3})'
+      - labels:
+          level:
+          event:
+          status:
+
+      # Sanitasi field sensitif jika ada (pertahanan lapis kedua)
+      - replace:
+          expression: '((?i)(password|token|otp|secret)=)"?[^"\s]+"?'
+          replace: '$1"[REDACTED]"'
+
+  # 2. Scrape langsung file log backend jika ada
+  - job_name: backend_files
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: backend_log
+          service: backend
+          __path__: /var/log/backend/*.log
+    pipeline_stages:
+      - regex:
+          expression: '(?i)level="?(?P<level>[A-Z]+)"?'
+      - regex:
+          expression: '(?i)event="?(?P<event>[A-Z0-9_]+)"?'
+      - labels:
+          level:
+          event:
