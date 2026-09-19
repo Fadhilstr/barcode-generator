@@ -73,7 +73,7 @@
                       </q-avatar>
                       <div>
                         <div class="text-subtitle1 text-weight-bold text-slate-900">Grafana Dashboard</div>
-                        <div class="text-caption text-grey-6 font-mono">Port 3000 &bull; Visualisasi Lengkap</div>
+                        <div class="text-caption text-grey-6 font-mono">/grafana/ &bull; Visualisasi Lengkap</div>
                       </div>
                     </div>
                     <q-badge color="positive" outline class="text-weight-bold">
@@ -307,8 +307,9 @@ const scanStore = useScanStore()
 
 const activeTab = ref('observability')
 
-const grafanaDashboardUrl = 'http://localhost:3000/d/scanner-monitoring/scanner-barcode-express-e28094-system-monitoring?orgId=1'
-const lokiExploreUrl = 'http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Loki%22,%7B%22expr%22:%22%7Bservice%3D~%5C%22backend%7Cscanner%7Cobservability%5C%22%7D%22%7D%5D'
+const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+const grafanaDashboardUrl = `${baseUrl}/grafana/d/scanner-monitoring/scanner-barcode-express-e28094-system-monitoring?orgId=1`
+const lokiExploreUrl = `${baseUrl}/grafana/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Loki%22,%7B%22expr%22:%22%7Bservice%3D~%5C%22backend%7Cscanner%7Cobservability%5C%22%7D%22%7D%5D`
 
 const allScans = computed(() => {
   return scanStore.getFilteredScans(authStore.currentUser)

@@ -121,13 +121,15 @@ Pastikan seluruh service berstatus `Up` atau `healthy`:
 4. Tab **`Live Observability Dashboard (Grafana)`** akan menampilkan seluruh metrik dan log secara terintegrasi langsung di dalam halaman aplikasi!
 
 ### B. Membuka Grafana Mandiri (Full-Screen)
-1. Buka URL: `http://localhost:3000`
-2. Kredensial default:
+1. Buka URL:
+   * **Lokal (Nginx Gateway):** `http://localhost:8080/grafana/` (atau port internal `http://localhost:3000/grafana/`)
+   * **Remote / Cloudflare Tunnel:** `https://[tunnel-anda].trycloudflare.com/grafana/`
+2. Kredensial default Admin:
    * **Username:** `admin`
-   * **Password:** `admin` (atau masuk otomatis via Anonymous Viewer jika diakses via iframe)
+   * **Password:** `admin`
 3. Dashboard utama otomatis tersedia di:
    * **Menu:** Dashboards → **Wahana Monitoring** → **Scanner Barcode Express — System Monitoring**
-   * **URL Langsung:** `http://localhost:3000/d/scanner-monitoring`
+   * **URL Langsung:** `http://localhost:8080/grafana/d/scanner-monitoring` (atau `/grafana/d/scanner-monitoring` pada domain Cloudflare)
 
 ---
 
