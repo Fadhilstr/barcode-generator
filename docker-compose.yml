@@ -157,7 +157,7 @@ services:
   # Service 7: Promtail (Log Collector from Docker & Files)
   # ------------------------------------------------------------
   promtail:
-    image: grafana/promtail:2.9.8
+    image: grafana/promtail:3.0.0
     container_name: wahana_scan_promtail
     restart: unless-stopped
     command: -config.file=/etc/promtail/promtail-config.yml
@@ -185,10 +185,11 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_SECURITY_ALLOW_EMBEDDING: "true"
-      GF_SECURITY_COOKIE_SAMESITE: "none"
+      GF_SECURITY_COOKIE_SAMESITE: "lax"
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
       GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: "/var/lib/grafana/dashboards/scanner-monitoring.json"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
@@ -211,7 +212,7 @@ services:
   # Service 9: cAdvisor (Container Resource & Hardware Metrics)
   # ------------------------------------------------------------
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    image: gcr.io/cadvisor/cadvisor:v0.51.0
     container_name: wahana_scan_cadvisor
     restart: unless-stopped
     privileged: true
@@ -220,6 +221,7 @@ services:
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro

@@ -32,7 +32,7 @@ RUN mkdir -p /app/log
 
 EXPOSE 5000
 
-# Jalankan uWSGI PSGI server
+# Jalankan uWSGI PSGI server (Prefork Multi-Process murni)
 CMD ["uwsgi", \
      "--http-socket", "0.0.0.0:5000", \
      "--plugin", "psgi", \
@@ -40,6 +40,5 @@ CMD ["uwsgi", \
      "--chdir", "/app", \
      "--master", \
      "--workers", "4", \
-     "--enable-threads", \
-     "--threads", "2", \
+     "--threads", "1", \
      "--die-on-term"]

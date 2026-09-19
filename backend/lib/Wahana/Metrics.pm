@@ -71,9 +71,69 @@ sub normalize_format {
     return $VALID_FORMATS{$clean} ? $clean : 'UNKNOWN';
 }
 
+sub _get_worker_id {
+    my $tid = 0;
+    eval {
+        # Ambil thread id dari kernel Linux (SYS_gettid = 186 di x86_64)
+        $tid = syscall(186);
+    };
+    $tid ||= $$;
+    return "${$}_${tid}";
+}
+
+# Inisialisasi baseline scanner dari MariaDB saat startup container/worker
+sub _init_db_baseline {
+    return unless -d $METRICS_DIR;
+    my $baseline_file = "$METRICS_DIR/db_baseline.json";
+    return if -f $baseline_file;
+
+    eval {
+        require Wahana::Db;
+        my $dbh = Wahana::Db->connect();
+        return unless $dbh;
+
+        my %base = (
+            scan_scans     => {},
+            scan_success   => {},
+            scan_duplicate => {},
+            scan_error     => {},
+        );
+
+        my $sth = $dbh->prepare("
+            SELECT COALESCE(p.barcode_format, 'UNKNOWN') as fmt, s.status_scan, count(*) as cnt
+            FROM scan_events s
+            LEFT JOIN paket p ON s.nomor_resi = p.nomor_resi
+            GROUP BY fmt, s.status_scan
+        ");
+        $sth->execute();
+        while (my $row = $sth->fetchrow_hashref) {
+            my $fmt = normalize_format($row->{fmt});
+            my $cnt = int($row->{cnt} // 0);
+            my $st  = uc($row->{status_scan} // 'SUCCESS');
+
+            $base{scan_scans}{$fmt} += $cnt;
+            if ($st eq 'SUCCESS') {
+                $base{scan_success}{$fmt} += $cnt;
+            } elsif ($st eq 'DUPLICATE') {
+                $base{scan_duplicate}{$fmt} += $cnt;
+            } else {
+                $base{scan_error}{$fmt} += $cnt;
+            }
+        }
+
+        my $tmp_file = "$baseline_file.tmp";
+        if (open my $fh, '>', $tmp_file) {
+            print $fh $JSON_CODER->encode(\%base);
+            close $fh;
+            rename $tmp_file, $baseline_file;
+        }
+    };
+}
+
 sub _flush_worker_file {
     return unless -d $METRICS_DIR;
-    my $file = "$METRICS_DIR/worker_$$.json";
+    my $wid = _get_worker_id();
+    my $file = "$METRICS_DIR/worker_${wid}.json";
     my $tmp_file = "$file.tmp";
     eval {
         if (open my $fh, '>', $tmp_file) {
@@ -158,6 +218,7 @@ sub record_scan_metric {
 # Agregasi seluruh data worker dari /tmp/wahana_metrics/
 sub _aggregate_all_metrics {
     _flush_worker_file();
+    _init_db_baseline();
 
     my %agg = (
         active_requests => 0,
@@ -175,8 +236,34 @@ sub _aggregate_all_metrics {
         scan_dur_bucket => {},
     );
 
+    # 1. Masukkan baseline dari database jika file tersedia
+    my $baseline_file = "$METRICS_DIR/db_baseline.json";
+    if (-f $baseline_file) {
+        eval {
+            if (open my $bfh, '<', $baseline_file) {
+                local $/;
+                my $bcontent = <$bfh>;
+                close $bfh;
+                my $bdata = $JSON_CODER->decode($bcontent);
+                for my $k (keys %{ $bdata->{scan_scans} || {} }) {
+                    $agg{scan_scans}{$k} += $bdata->{scan_scans}{$k};
+                }
+                for my $k (keys %{ $bdata->{scan_success} || {} }) {
+                    $agg{scan_success}{$k} += $bdata->{scan_success}{$k};
+                }
+                for my $k (keys %{ $bdata->{scan_duplicate} || {} }) {
+                    $agg{scan_duplicate}{$k} += $bdata->{scan_duplicate}{$k};
+                }
+                for my $k (keys %{ $bdata->{scan_error} || {} }) {
+                    $agg{scan_error}{$k} += $bdata->{scan_error}{$k};
+                }
+            }
+        };
+    }
+
+    # 2. Agregasikan seluruh file metrik live worker
     opendir my $dh, $METRICS_DIR or return \%agg;
-    my @files = grep { /^worker_\d+\.json$/ } readdir($dh);
+    my @files = grep { /^worker_[\d_]+\.json$/ } readdir($dh);
     closedir $dh;
 
     for my $fn (@files) {
