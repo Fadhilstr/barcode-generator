@@ -354,8 +354,11 @@ export function normalizeScannedBarcode(raw, format = null) {
   }
 
   // 9. UPC_A: Tambahkan check digit atau tetap
-  if (fmt === 'UPC_A' || (/^\d{11,12}$/.test(s) && fmt !== 'EAN_13')) {
+  if (fmt === 'UPC_A' || (/^\d{11,12}$/.test(s) && fmt !== 'EAN_13') || (fmt === 'UPC_A' && /^0\d{12}$/.test(s))) {
     let digits = s.replace(/\D/g, '')
+    if (digits.length === 13 && digits.startsWith('0')) {
+      digits = digits.slice(1) // Kupas leading 0 dari wrapper EAN-13
+    }
     if (digits.length === 11) {
       const cd = calculateMod10CheckDigit(digits)
       digits = digits + cd
@@ -374,6 +377,12 @@ export function normalizeScannedBarcode(raw, format = null) {
   // 10. EAN_13: Tambahkan / check digit
   if (fmt === 'EAN_13' || (/^\d{12,13}$/.test(s) && fmt !== 'UPC_A')) {
     let digits = s.replace(/\D/g, '')
+    // Fallback: Jika 13 digit berawalan 0 (UPC-A dibungkus EAN-13), periksa local storage untuk 12 digitnya
+    if (digits.length === 13 && digits.startsWith('0')) {
+      const stripped = digits.slice(1)
+      const mapped = checkLocalStorage(stripped) || (compressUpcaToUpce(stripped) ? checkLocalStorage(compressUpcaToUpce(stripped)) : null)
+      if (mapped) return mapped
+    }
     if (digits.length === 12) {
       const cd = calculateMod10CheckDigit(digits)
       digits = digits + cd

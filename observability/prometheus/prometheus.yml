@@ -29,3 +29,44 @@ scrape_configs:
         labels:
           service: 'infrastructure'
           environment: 'production'
+    metric_relabel_configs:
+      - source_labels: [image]
+        regex: '.*scan-resi-backend.*'
+        target_label: name
+        replacement: 'wahana_scan_backend'
+      - source_labels: [image]
+        regex: '.*scan-resi-frontend.*'
+        target_label: name
+        replacement: 'wahana_scan_frontend'
+      - source_labels: [image]
+        regex: '.*mariadb.*'
+        target_label: name
+        replacement: 'wahana_scan_db'
+      - source_labels: [image]
+        regex: '.*nginx.*'
+        target_label: name
+        replacement: 'wahana_scan_nginx'
+      - source_labels: [image]
+        regex: '.*prometheus.*'
+        target_label: name
+        replacement: 'wahana_scan_prometheus'
+      - source_labels: [image]
+        regex: '.*loki.*'
+        target_label: name
+        replacement: 'wahana_scan_loki'
+      - source_labels: [image]
+        regex: '.*promtail.*'
+        target_label: name
+        replacement: 'wahana_scan_promtail'
+      - source_labels: [image]
+        regex: '.*grafana/grafana.*'
+        target_label: name
+        replacement: 'wahana_scan_grafana'
+      - source_labels: [image]
+        regex: '.*cadvisor.*'
+        target_label: name
+        replacement: 'wahana_scan_cadvisor'
+      - source_labels: [interface]
+        regex: 'br-.*'
+        target_label: name
+        replacement: 'wahana_network_bridge'

@@ -73,7 +73,12 @@ export function extractZxingWasmText(result) {
       if (parsed && parsed.UPCE) return String(parsed.UPCE)
     } catch {}
   }
-  return String(result.text || '')
+  const rawText = String(result.text || '').trim()
+  // UPC-A dienkapsulasi oleh ZXing C++ sebagai 13 digit berawalan '0' (EAN-13 GS1 standard)
+  if ((result.format === 'EAN13' || result.format === 'UPCA' || result.symbology === 'EANUPC') && /^0\d{12}$/.test(rawText)) {
+    return rawText.slice(1) // Kembalikan 12-digit UPC-A asli
+  }
+  return rawText
 }
 
 /**
@@ -94,10 +99,17 @@ export function mapZxingWasmFormat(formatStr, text = '') {
   if (f.includes('QRCode')) return 'QR_CODE'
   if (f.includes('Aztec')) return 'AZTEC'
   if (f === 'DataMatrix') return 'DATA_MATRIX'
-  if (f === 'EAN13' || f === 'ISBN' || f === 'UPCA' || f === 'EANUPC') {
-    return f === 'UPCA' ? 'UPC_A' : 'EAN_13'
+  if (f === 'UPCA') return 'UPC_A'
+  if (f === 'EAN13' || f === 'ISBN' || f === 'EANUPC') {
+    const digits = String(text || '').replace(/\D/g, '')
+    // 12 digit, atau 13 digit berawalan '0' adalah UPC-A (GS1 standard)
+    if (digits.length === 12 || (digits.length === 13 && digits.startsWith('0'))) {
+      return 'UPC_A'
+    }
+    return 'EAN_13'
   }
   if (f === 'EAN8') return 'EAN_8'
   if (f === 'UPCE') return 'UPC_E'
   return f.toUpperCase()
 }
+

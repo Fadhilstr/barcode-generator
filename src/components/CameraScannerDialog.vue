@@ -411,15 +411,17 @@ const startZxingFallback = (videoElement) => {
           wasmFormats = ['Code93']
         } else if (preferred === 'UPC_E') {
           wasmFormats = ['UPCE', 'EANUPC']
+        } else if (preferred === 'UPC_A') {
+          wasmFormats = ['UPCA', 'EANUPC']
         } else if (preferred === 'UPC_EAN_EXTENSION') {
           wasmFormats = ['EANUPC']
         } else if (preferred === 'RSS_14') {
           wasmFormats = ['DataBar']
         } else if (wantGs1Heavy) {
-          wasmFormats = ['Code93', 'UPCE', 'DataBar', 'EANUPC']
+          wasmFormats = ['Code93', 'UPCE', 'UPCA', 'DataBar', 'EANUPC']
         } else {
-          // AUTO mode: prioritaskan format Code 93, UPC-E, EAN/UPC, DataBar, 1D linear, dan 2D
-          wasmFormats = ['Code93', 'UPCE', 'EANUPC', 'DataBar', 'Code128', 'Code39', 'Codabar', 'ITF', 'QRCode', 'DataMatrix', 'Aztec', 'PDF417']
+          // AUTO mode: prioritaskan format Code 93, UPC-E, UPC-A, EAN/UPC, DataBar, 1D linear, dan 2D
+          wasmFormats = ['Code93', 'UPCE', 'UPCA', 'EANUPC', 'DataBar', 'Code128', 'Code39', 'Codabar', 'ITF', 'QRCode', 'DataMatrix', 'Aztec', 'PDF417']
         }
 
         try {

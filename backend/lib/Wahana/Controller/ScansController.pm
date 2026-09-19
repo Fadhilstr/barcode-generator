@@ -223,7 +223,14 @@ sub create {
         };
     }
 
-    $format ||= $paket->{barcode_format} || 'UNKNOWN';
+    # Sinkronisasi format: Jika scanner mendeteksi EAN_13 padahal paket adalah UPC_A (translasi GS1/ZXing C++),
+    # atau jika format belum terdefinisi, gunakan barcode_format resmi master paket.
+    if ($paket->{barcode_format}) {
+        if (!$format || ($format eq 'EAN_13' && $paket->{barcode_format} eq 'UPC_A')) {
+            $format = $paket->{barcode_format};
+        }
+    }
+    $format ||= 'UNKNOWN';
 
     if ($paket->{status} ne 'TERDAFTAR') {
         my $st = $paket->{status} // 'NON_ACTIVE';
