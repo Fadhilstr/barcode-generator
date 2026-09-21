@@ -263,22 +263,27 @@
     },
     {
       "id": 22,
-      "title": "Average Decode Duration by Format (ms)",
+      "title": "Average Decode Duration by Format (Detik / Seconds)",
       "type": "barchart",
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 11 },
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
-          "expr": "(sum by (format) (rate(scanner_decode_duration_seconds_sum[5m])) / sum by (format) (rate(scanner_decode_duration_seconds_count[5m])) * 1000) > 0",
+          "expr": "(sum by (format) (scanner_decode_duration_seconds_sum) / sum by (format) (scanner_decode_duration_seconds_count)) > 0",
           "legendFormat": "{{format}}",
           "refId": "A"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "ms",
+          "unit": "s",
+          "decimals": 3,
           "color": { "mode": "palette-classic" }
         }
+      },
+      "options": {
+        "showValue": "always",
+        "legend": { "displayMode": "table", "placement": "bottom", "values": ["value"] }
       }
     },
     {
@@ -300,8 +305,95 @@
       }
     },
     {
+      "id": 24,
+      "title": "Rincian Durasi Scan Seluruh Format Barcode (Detik & Milidetik)",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 19 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "sum by (format) (scanner_scans_total)",
+          "instant": true,
+          "format": "table",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (format) (scanner_decode_duration_seconds_sum) / sum by (format) (scanner_decode_duration_seconds_count)",
+          "instant": true,
+          "format": "table",
+          "refId": "B"
+        },
+        {
+          "expr": "(sum by (format) (scanner_decode_duration_seconds_sum) / sum by (format) (scanner_decode_duration_seconds_count)) * 1000",
+          "instant": true,
+          "format": "table",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": { "align": "auto" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Value #A" },
+            "properties": [
+              { "id": "displayName", "value": "Total Scans" },
+              { "id": "unit", "value": "short" },
+              { "id": "decimals", "value": 0 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Value #B" },
+            "properties": [
+              { "id": "displayName", "value": "Rata-rata Durasi (Detik)" },
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 4 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Value #C" },
+            "properties": [
+              { "id": "displayName", "value": "Rata-rata Durasi (ms)" },
+              { "id": "unit", "value": "ms" },
+              { "id": "decimals", "value": 1 }
+            ]
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "format",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true
+            },
+            "renameByName": {
+              "format": "Format Barcode"
+            },
+            "indexByName": {
+              "format": 0,
+              "Value #A": 1,
+              "Value #B": 2,
+              "Value #C": 3
+            }
+          }
+        }
+      ]
+    },
+    {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 19 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 },
       "id": 400,
       "title": "API Performance & Error Diagnostics",
       "type": "row"
@@ -310,7 +402,7 @@
       "id": 31,
       "title": "API Request Rate by Endpoint",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         { "expr": "sum by (endpoint, method) (rate(http_requests_total[1m])) * 60", "legendFormat": "{{method}} {{endpoint}}", "refId": "A" }
@@ -323,7 +415,7 @@
       "id": 32,
       "title": "API Response Duration Percentiles (P50, P90, P99)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         { "expr": "histogram_quantile(0.50, sum by (le) (rate(http_request_duration_seconds_bucket[1m]))) * 1000", "legendFormat": "P50 (Median)", "refId": "A" },
@@ -336,7 +428,7 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 28 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 },
       "id": 500,
       "title": "Infrastructure Metrics (Docker & System)",
       "type": "row"
@@ -345,7 +437,7 @@
       "id": 41,
       "title": "CPU Usage by Container (%)",
       "type": "timeseries",
-      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 29 },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 37 },
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         { "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{name=~\"wahana.*\"}[1m])) * 100", "legendFormat": "{{name}}", "refId": "A" }
@@ -358,7 +450,7 @@
       "id": 42,
       "title": "Memory Usage by Container (MB)",
       "type": "timeseries",
-      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 29 },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 37 },
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         { "expr": "container_memory_working_set_bytes{name=~\"wahana.*\"}", "legendFormat": "{{name}}", "refId": "A" }
@@ -371,7 +463,7 @@
       "id": 43,
       "title": "Network I/O Rate (KB/s)",
       "type": "timeseries",
-      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 29 },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 37 },
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         { "expr": "sum by (name) (rate(container_network_receive_bytes_total{name=~\"wahana.*\"}[1m]))", "legendFormat": "{{name}} In", "refId": "A" },
@@ -383,7 +475,7 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 44 },
       "id": 600,
       "title": "Live Logs Explorer (Loki)",
       "type": "row"
@@ -392,7 +484,7 @@
       "id": 51,
       "title": "Scanner & Backend Logs (ERROR / WARN / SCAN_SUCCESS / API_ERROR)",
       "type": "logs",
-      "gridPos": { "h": 12, "w": 14, "x": 0, "y": 37 },
+      "gridPos": { "h": 12, "w": 14, "x": 0, "y": 45 },
       "datasource": { "type": "loki", "uid": "Loki" },
       "targets": [
         {
@@ -412,7 +504,7 @@
       "id": 52,
       "title": "Nginx Access & Gateway Logs",
       "type": "logs",
-      "gridPos": { "h": 12, "w": 10, "x": 14, "y": 37 },
+      "gridPos": { "h": 12, "w": 10, "x": 14, "y": 45 },
       "datasource": { "type": "loki", "uid": "Loki" },
       "targets": [
         {

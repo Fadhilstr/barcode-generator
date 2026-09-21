@@ -120,7 +120,7 @@ const submitValue = (rawValue, format = null, duration = null) => {
 }
 
 const handleScan = () => {
-  submitValue(barcodeValue.value)
+  submitValue(barcodeValue.value, null, 25)
 }
 
 // Hasil deteksi kamera → alur scan yang sama dengan input manual (FR-3)
@@ -139,6 +139,7 @@ const handleCameraDetected = (val, format = null, duration = null) => {
 const WEDGE_GAP_MS = 120 // jeda maks antar karakter agar dianggap burst scanner
 let wedgeBuffer = ''
 let wedgeLastAt = 0
+let wedgeStartAt = 0
 
 const isTypingTarget = (el) =>
   el instanceof HTMLElement &&
@@ -155,15 +156,20 @@ const onGlobalKeydown = (e) => {
 
   if (e.key === 'Enter') {
     const value = wedgeBuffer
+    const wedgeDurationMs = wedgeStartAt ? Math.min(Math.max(now - wedgeStartAt, 15), 500) : 25
     wedgeBuffer = ''
+    wedgeStartAt = 0
     if (value.length >= 4 && now - wedgeLastAt <= WEDGE_GAP_MS * 3) {
       e.preventDefault()
-      submitValue(value)
+      submitValue(value, null, wedgeDurationMs)
     }
     return
   }
 
   if (e.key.length === 1) {
+    if (!wedgeBuffer) {
+      wedgeStartAt = now
+    }
     wedgeBuffer = now - wedgeLastAt <= WEDGE_GAP_MS ? wedgeBuffer + e.key : e.key
     wedgeLastAt = now
   }

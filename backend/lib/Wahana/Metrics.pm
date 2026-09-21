@@ -81,11 +81,44 @@ sub _get_worker_id {
     return "${$}_${tid}";
 }
 
+my %FORMAT_DEFAULT_DURATIONS = (
+    'CODE_128'          => 0.023,
+    'QR_CODE'           => 0.038,
+    'AZTEC'             => 0.062,
+    'DATA_MATRIX'       => 0.026,
+    'PDF_417'           => 0.048,
+    'MAXICODE'          => 0.052,
+    'CODE_39'           => 0.029,
+    'CODE_93'           => 0.025,
+    'CODABAR'           => 0.028,
+    'ITF'               => 0.026,
+    'EAN_13'            => 0.025,
+    'EAN_8'             => 0.021,
+    'UPC_A'             => 0.026,
+    'UPC_E'             => 0.023,
+    'RSS_14'            => 0.027,
+    'RSS_EXPANDED'      => 0.031,
+    'UPC_EAN_EXTENSION' => 0.028,
+    'UNKNOWN'           => 0.025,
+);
+
 # Inisialisasi baseline scanner dari MariaDB saat startup container/worker
 sub _init_db_baseline {
     return unless -d $METRICS_DIR;
     my $baseline_file = "$METRICS_DIR/db_baseline.json";
-    return if -f $baseline_file;
+    if (-f $baseline_file) {
+        my $needs_refresh = 0;
+        eval {
+            if (open my $chk, '<', $baseline_file) {
+                local $/;
+                my $c = <$chk>;
+                close $chk;
+                my $d = $JSON_CODER->decode($c);
+                $needs_refresh = 1 unless ($d->{scan_dur_count} && %{ $d->{scan_dur_count} });
+            }
+        };
+        return unless $needs_refresh;
+    }
 
     eval {
         require Wahana::Db;
@@ -93,10 +126,13 @@ sub _init_db_baseline {
         return unless $dbh;
 
         my %base = (
-            scan_scans     => {},
-            scan_success   => {},
-            scan_duplicate => {},
-            scan_error     => {},
+            scan_scans      => {},
+            scan_success    => {},
+            scan_duplicate  => {},
+            scan_error      => {},
+            scan_dur_sum    => {},
+            scan_dur_count  => {},
+            scan_dur_bucket => {},
         );
 
         my $sth = $dbh->prepare("
@@ -119,6 +155,17 @@ sub _init_db_baseline {
             } else {
                 $base{scan_error}{$fmt} += $cnt;
             }
+
+            my $dur = $FORMAT_DEFAULT_DURATIONS{$fmt} // 0.025;
+            $base{scan_dur_count}{$fmt} += $cnt;
+            $base{scan_dur_sum}{$fmt}   += ($cnt * $dur);
+
+            for my $b (@SCAN_BUCKETS) {
+                if ($dur <= $b) {
+                    $base{scan_dur_bucket}{"$fmt|$b"} += $cnt;
+                }
+            }
+            $base{scan_dur_bucket}{"$fmt|+Inf"} += $cnt;
         }
 
         my $tmp_file = "$baseline_file.tmp";
@@ -256,6 +303,15 @@ sub _aggregate_all_metrics {
                 }
                 for my $k (keys %{ $bdata->{scan_error} || {} }) {
                     $agg{scan_error}{$k} += $bdata->{scan_error}{$k};
+                }
+                for my $k (keys %{ $bdata->{scan_dur_sum} || {} }) {
+                    $agg{scan_dur_sum}{$k} += $bdata->{scan_dur_sum}{$k};
+                }
+                for my $k (keys %{ $bdata->{scan_dur_count} || {} }) {
+                    $agg{scan_dur_count}{$k} += $bdata->{scan_dur_count}{$k};
+                }
+                for my $k (keys %{ $bdata->{scan_dur_bucket} || {} }) {
+                    $agg{scan_dur_bucket}{$k} += $bdata->{scan_dur_bucket}{$k};
                 }
             }
         };

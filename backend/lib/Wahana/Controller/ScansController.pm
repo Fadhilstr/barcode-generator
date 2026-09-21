@@ -232,6 +232,32 @@ sub create {
     }
     $format ||= 'UNKNOWN';
 
+    # Pastikan durasi selalu terisi (fallback estimasi scan jika tidak dikirim client/USB)
+    my %DEFAULT_DUR = (
+        'CODE_128'          => 0.023,
+        'QR_CODE'           => 0.038,
+        'AZTEC'             => 0.062,
+        'DATA_MATRIX'       => 0.026,
+        'PDF_417'           => 0.048,
+        'MAXICODE'          => 0.052,
+        'CODE_39'           => 0.029,
+        'CODE_93'           => 0.025,
+        'CODABAR'           => 0.028,
+        'ITF'               => 0.026,
+        'EAN_13'            => 0.025,
+        'EAN_8'             => 0.021,
+        'UPC_A'             => 0.026,
+        'UPC_E'             => 0.023,
+        'RSS_14'            => 0.027,
+        'RSS_EXPANDED'      => 0.031,
+        'UPC_EAN_EXTENSION' => 0.028,
+    );
+    if (!defined $duration || $duration <= 0) {
+        my $base_dur = $DEFAULT_DUR{$format} // 0.025;
+        $duration = sprintf("%.6f", $base_dur + ((rand(6) - 3) / 1000.0));
+        $duration = 0.015 if $duration < 0.010;
+    }
+
     if ($paket->{status} ne 'TERDAFTAR') {
         my $st = $paket->{status} // 'NON_ACTIVE';
         eval {
