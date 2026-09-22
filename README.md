@@ -86,11 +86,6 @@ Untuk menghentikan layanan:
 ./backend/start-db.sh
 ```
 
-#### 2. Jalankan Backend Perl API Server
-```bash
-export WAHANA_DB_DSN='DBI:mysql:database=wahana_scan;host=127.0.0.1;port=3307'
-export WAHANA_DB_USER='wahana_app'
-export WAHANA_DB_PASS='wahana_pass'
 
 perl backend/server.pl
 ```
